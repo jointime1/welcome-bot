@@ -1,11 +1,50 @@
 import type { Conversation } from "@grammyjs/conversations";
 import { InlineKeyboard } from "grammy";
-import type { MyContext } from "index";
+import { db, type MyContext } from "index";
 
 export async function onboarding(
   conversation: Conversation<MyContext, MyContext>,
   ctx: MyContext
 ) {
+  try {
+    if (!ctx.from) {
+      await ctx.reply(
+        "Не удалось получить информацию о пользователе. Пожалуйста, попробуйте позже."
+      );
+      return;
+    }
+
+    // Проверяем, есть ли пользователь уже в базе
+    const existingUser = await conversation.external(() =>
+      db
+        .selectFrom("users")
+        .where("tg_id", "=", ctx.from!.id)
+        .select(["tg_id"])
+        .executeTakeFirst()
+    );
+
+    if (!existingUser) {
+      await conversation.external(() =>
+        db
+          .insertInto("users")
+          .values({
+            first_name: ctx.from!.first_name,
+            last_name: ctx.from!.last_name || null,
+            tg_id: ctx.from!.id,
+            tg_username: ctx.from!.username || "",
+          })
+          .execute()
+      );
+      conversation.log(
+        `Новый пользователь добавлен: ${ctx.from.first_name} (ID: ${ctx.from.id})`
+      );
+    } else {
+      conversation.log(`Пользователь уже существует: ID ${ctx.from.id}`);
+    }
+  } catch (e) {
+    conversation.log("Ошибка при работе с базой данных:", e);
+  }
+
   // Определяем шаги онбординга
   const steps = [
     {

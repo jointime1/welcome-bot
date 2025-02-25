@@ -7,8 +7,8 @@ import {
   type ConversationFlavor,
 } from "@grammyjs/conversations";
 import { feedback } from "./conversations/feedback";
-import { onboardingMenu } from "menus/onboarding.menu";
 import { onboarding } from "conversations/onboarding";
+import { mainMenu, showMainMenu } from "menus/onboarding.menu";
 
 export type MyContext = Context &
   ConversationFlavor<Context> & { session: { onboardingIndex: number } };
@@ -22,15 +22,11 @@ bot.use(session({ initial: () => ({ onboardingIndex: 0 }) }));
 bot.use(createConversation<MyContext, MyContext>(feedback));
 bot.use(createConversation<MyContext, MyContext>(onboarding));
 
-bot.use(onboardingMenu);
-
+bot.use(mainMenu);
 const ADMIN_IDS: number[] = [931916742];
 
 bot.command("menu", async (ctx) => {
-  await ctx.reply(
-    "👋 Привет! Добро пожаловать в IT-ХОЗЯЕВА! Сейчас ты познакомишься с чатами.",
-    { reply_markup: onboardingMenu }
-  );
+  await showMainMenu(ctx);
 });
 
 bot.command("start", async (ctx) => {

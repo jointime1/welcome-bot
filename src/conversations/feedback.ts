@@ -1,6 +1,5 @@
 import type { Conversation } from "@grammyjs/conversations";
 import { db, type MyContext } from "index";
-import { onboardingMenu } from "menus/onboarding.menu";
 
 export async function feedback(
   conversation: Conversation<MyContext, MyContext>,

@@ -3,7 +3,10 @@ import type { Generated, ColumnType } from "kysely";
 export interface DB {
   users: {
     id: Generated<number>;
-    email: string;
+    tg_id: number;
+    tg_username: string;
+    first_name: string;
+    last_name: string | null;
     created_at: ColumnType<Date, string | undefined, never>;
   };
   event: {
