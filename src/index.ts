@@ -8,7 +8,9 @@ import {
 } from "@grammyjs/conversations";
 import { feedback } from "./conversations/feedback";
 import { onboarding } from "conversations/onboarding";
+import { createEvent } from "./conversations/create_event";
 import { mainMenu, showMainMenu } from "menus/onboarding.menu";
+import { adminMenu, showAdminMenu } from "menus/admin.menu";
 
 export type MyContext = Context &
   ConversationFlavor<Context> & { session: { onboardingIndex: number } };
@@ -21,12 +23,18 @@ bot.use(session({ initial: () => ({ onboardingIndex: 0 }) }));
 
 bot.use(createConversation<MyContext, MyContext>(feedback));
 bot.use(createConversation<MyContext, MyContext>(onboarding));
+bot.use(createConversation<MyContext, MyContext>(createEvent));
 
 bot.use(mainMenu);
+bot.use(adminMenu);
 const ADMIN_IDS: number[] = [931916742];
 
 bot.command("menu", async (ctx) => {
   await showMainMenu(ctx);
+});
+
+bot.command("admin", async (ctx) => {
+  await showAdminMenu(ctx);
 });
 
 bot.command("start", async (ctx) => {
@@ -119,12 +127,16 @@ bot.command("view_feedback", async (ctx) => {
   await ctx.reply(feedbackList);
 });
 
-bot.command("feedback", async (ctx) => {
-  await ctx.conversation.enter("feedback");
+bot.command("create_event", async (ctx) => {
+  if (!ADMIN_IDS.includes(ctx.from?.id || 0)) {
+    await ctx.reply("Только администраторы могут создавать события");
+    return;
+  }
+  await ctx.conversation.enter("createEvent");
 });
 
-bot.command("admin", async (ctx) => {
-  await ctx.conversation.enter("adminConversation");
+bot.command("feedback", async (ctx) => {
+  await ctx.conversation.enter("feedback");
 });
 
 bot.command("cancel", async (ctx) => {
