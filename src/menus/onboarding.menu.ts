@@ -144,6 +144,10 @@ export const mainMenu = new Menu<MyContext>("main-menu")
   .text("Оставить отзыв", async (ctx) => {
     await ctx.conversation.enter("feedback");
   })
+  .row()
+  .text("Отправить анонимное сообщение в беседу", async (ctx) => {
+    await ctx.conversation.enter("anonymousMessage");
+  })
   .row();
 
 // Регистрация всех меню

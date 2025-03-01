@@ -19,11 +19,11 @@ services:
     depends_on:
       - db
     environment:
-      DATABASE_URL: "postgres://postgres:postgres@db:5432/bot_db"
+      DATABASE_URL: "${DATABASE_URL}"
       BOT_TOKEN: ${BOT_TOKEN}
     volumes:
       - .:/app
-    command: bun start
+    command: sh -c "bun run migrate:latest && bun start"
 
 volumes:
   postgres_data:

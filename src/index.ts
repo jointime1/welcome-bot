@@ -9,6 +9,7 @@ import {
 import { feedback } from "./conversations/feedback";
 import { onboarding } from "conversations/onboarding";
 import { createEvent } from "./conversations/create_event";
+import { anonymousMessage } from "./conversations/anonymous_message";
 import { mainMenu, showMainMenu } from "menus/onboarding.menu";
 import { adminMenu, showAdminMenu } from "menus/admin.menu";
 
@@ -24,13 +25,31 @@ bot.use(session({ initial: () => ({ onboardingIndex: 0 }) }));
 bot.use(createConversation<MyContext, MyContext>(feedback));
 bot.use(createConversation<MyContext, MyContext>(onboarding));
 bot.use(createConversation<MyContext, MyContext>(createEvent));
+bot.use(createConversation<MyContext, MyContext>(anonymousMessage));
 
 bot.use(mainMenu);
 bot.use(adminMenu);
+
+//Middleware для проверки типа чата
+bot.use(async (ctx, next) => {
+  if (ctx.chat?.type !== "private") {
+    return;
+  }
+  await next();
+});
+
 const ADMIN_IDS: number[] = [931916742];
 
 bot.command("menu", async (ctx) => {
   await showMainMenu(ctx);
+});
+
+bot.command("chat_id", async (ctx) => {
+  await ctx.reply(ctx.chat.id.toString());
+});
+
+bot.command("anonymous", async (ctx) => {
+  await ctx.conversation.enter("anonymousMessage");
 });
 
 bot.command("admin", async (ctx) => {
@@ -90,8 +109,7 @@ bot.command("list_events", async (ctx) => {
 
   const eventsList = events
     .map(
-      (e) =>
-        `📅 ${e.name}\n📍 ${e.date.toLocaleDateString()}\n📝 ${e.description}`
+      (e) => ` ${e.name}\n ${e.date.toLocaleDateString()}\n ${e.description}`
     )
     .join("\n\n");
 
@@ -107,7 +125,7 @@ bot.command("view_feedback", async (ctx) => {
   const feedback = await db
     .selectFrom("feedback")
     .selectAll()
-    .orderBy("createdAt", "desc")
+    .orderBy("created_at", "desc")
     .execute();
 
   if (feedback.length === 0) {
@@ -118,9 +136,9 @@ bot.command("view_feedback", async (ctx) => {
   const feedbackList = feedback
     .map(
       (f) =>
-        `От: ${f.username || f.userId}\n📝 ${
+        `От: ${f.username || f.user_id}\n ${
           f.message
-        }\n📅 ${f.createdAt.toLocaleDateString()}`
+        }\n ${f.created_at.toLocaleDateString()}`
     )
     .join("\n\n");
 
